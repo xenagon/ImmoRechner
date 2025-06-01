@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Burkhard's ImmoRechner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+        
+        .input-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .results-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .result-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .result-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+        }
+        
+        .result-item strong {
+            color: #2c3e50;
+        }
+        
+        .highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+        
+        .comparison {
+            background: #e8f5e8;
+            border-left: 5px solid #28a745;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+        
+        .comparison.negative {
+            background: #ffeaa7;
+            border-left-color: #fdcb6e;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+        }
+        
+        .section-title {
+            color: #2c3e50;
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .input-group.dependent {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .input-group.dependent label {
+            font-size: 14px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .input-group.dependent input {
+            font-size: 14px;
+            background: #f8f9fa;
+        }
+        
+        .info-text {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 40px 20px;
+        }
+        
+        /* Toggle Switch Styles */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 28px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 28px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        input:checked + .slider {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(32px);
+        }
+        
+        .slider:hover {
+            box-shadow: 0 0 8px rgba(102, 126, 234, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Burkhard's ImmoRechner 📈</h1>
+            <p>Immobilienkauf vs. Miete + Aktienanlage Vergleich</p>
+            <p style="font-size: 1rem; margin-top: 10px; opacity: 0.9; font-style: italic;">
+                Das ultimative Tool für internationale Rentner-Träume!
+            </p>
+        </div>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="section-title">Ihre Eingaben</h2>
+                
+                <div class="input-group">
+                    <label for="eigenkapital">Verfügbares Eigenkapital (EUR):</label>
+                    <input type="number" id="eigenkapital" value="250000">
+                </div>
+                
+                <div class="input-group">
+                    <label for="region">Region / Land:</label>
+                    <select id="region">
+                        <optgroup label="Deutschland">
+                            <option value="mecklenburg">Mecklenburg-Vorpommern</option>
+                            <option value="erfurt">Erfurt (Thüringen)</option>
+                            <option value="kleinstadt">Kleinstadt/Ländlich</option>
+                            <option value="durchschnitt" selected>Deutschland Durchschnitt</option>
+                            <option value="berlin">Berlin (Großstadt)</option>
+                            <option value="frankfurt">Frankfurt (Teuer)</option>
+                            <option value="muenchen">München (Premium)</option>
+                        </optgroup>
+                        <optgroup label="Ausland">
+                            <option value="frankreich_sued">🇫🇷 Frankreich Süd (Côte d'Azur)</option>
+                            <option value="frankreich_west">🇫🇷 Frankreich West (Atlantik)</option>
+                            <option value="griechenland">🇬🇷 Griechenland</option>
+                            <option value="italien">🇮🇹 Italien (Süd)</option>
+                            <option value="portugal">🇵🇹 Portugal</option>
+                            <option value="spanien">🇪🇸 Spanien</option>
+                            <option value="ungarn">🇭🇺 Ungarn</option>
+                            <option value="thailand">🇹🇭 Thailand</option>
+                            <option value="vietnam">🇻🇳 Vietnam</option>
+                        </optgroup>
+                        <optgroup label="Sonstiges">
+                            <option value="custom">Eigene Werte eingeben</option>
+                        </optgroup>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="wohnflaeche">Wohnfläche (m²):</label>
+                    <input type="number" id="wohnflaeche" value="90">
+                </div>
+                
+                <div class="input-group dependent">
+                    <label for="kaufpreis">→ Kaufpreis Immobilie (EUR):</label>
+                    <input type="number" id="kaufpreis" value="306000">
+                </div>
+                
+                <div class="input-group dependent">
+                    <label for="mietpreis-qm">→ Mietpreis pro m² (EUR):</label>
+                    <input type="number" id="mietpreis-qm" value="11.40" step="0.01">
+                </div>
+                
+                <div class="input-group">
+                    <label for="zinssatz">Kreditzinssatz (% p.a.):</label>
+                    <input type="number" id="zinssatz" value="3.5" step="0.1">
+                </div>
+                
+                <div class="input-group">
+                    <label for="laufzeit">Kreditlaufzeit (Jahre):</label>
+                    <input type="number" id="laufzeit" value="20">
+                </div>
+                
+                <div class="input-group">
+                    <label for="aktienrendite">Erwartete Aktienrendite (% p.a.):</label>
+                    <input type="number" id="aktienrendite" value="7.0" step="0.1">
+                </div>
+                
+                <div class="input-group">
+                    <label for="immobilien-wertsteigerung">Immobilien-Wertsteigerung (% p.a.):</label>
+                    <input type="number" id="immobilien-wertsteigerung" value="2.0" step="0.1">
+                </div>
+                
+                <div style="font-size: 12px; color: #6c757d; margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                    ℹ️ <strong>Annahmen:</strong> Mietpreise steigen mit der gleichen Rate wie die Immobilien-Wertsteigerung. 
+                    Aktienrendite und Zinssatz bleiben konstant über die Laufzeit.
+                </div>
+                
+                <div class="input-group">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <label style="margin-bottom: 0; font-size: 16px; font-weight: 600;">Risikolebensversicherung für Kredit</label>
+                        <label class="switch" style="margin-left: 15px;">
+                            <input type="checkbox" id="risikoversicherung" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 12px; margin-top: 8px; font-size: 13px; color: #856404;">
+                        ⚠️ <strong>Wichtiger Hinweis:</strong> Bei Paaren kann beim Tod eines Partners die Rente um 1/3 bis 1/2 sinken. 
+                        Ohne Risikolebensversicherung müsste der überlebende Partner die volle Kreditrate allein tragen.
+                    </div>
+                </div>
+                
+                <div class="input-group dependent" id="versicherung-details" style="display: block;">
+                    <label for="alter">→ Ihr Alter (Jahre):</label>
+                    <input type="number" id="alter" value="64">
+                </div>
+                
+                <div class="input-group dependent" id="versicherung-beitrag" style="display: block;">
+                    <label for="versicherungsbeitrag">→ Versicherungsbeitrag/Monat (EUR):</label>
+                    <input type="text" id="versicherungsbeitrag" value="0" readonly>
+                    <div style="font-size: 11px; color: #6c757d; margin-top: 4px;">
+                        Basierend auf Sterbewahrscheinlichkeit. Hohe Beiträge bei hohem Alter + langer Laufzeit
+                    </div>
+                </div>
+                
+                <button class="calculate-btn" onclick="berechnen()">
+                    🧮 Berechnen
+                </button>
+            </div>
+            
+            <div class="results-section">
+                <h2 class="section-title">Ergebnisse</h2>
+                <div id="results">
+                    <div class="info-text">
+                        👈 Klicken Sie "Berechnen" um die Analyse zu starten
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="background: #2c3e50; color: white; padding: 20px; text-align: center; font-size: 14px;">
+            <p>© 2025 <strong>Burkhard Kroesen</strong> | Burkhard's ImmoRechner</p>
+            <p style="margin-top: 8px; opacity: 0.8;">
+                Dieses Tool steht unter der <strong>MIT-Lizenz</strong> zur freien Verfügung. 
+                <a href="https://opensource.org/licenses/MIT" style="color: #67b7dc;" target="_blank">Lizenzdetails</a>
+            </p>
+            <p style="margin-top: 8px; opacity: 0.7; font-size: 12px;">
+                Keine Gewähr für Richtigkeit. Alle Berechnungen dienen nur der groben Orientierung.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Regionale Preisdaten
+        const regionalePreise = {
+            muenchen: { kaufpreis_qm: 7355, mietpreis_qm: 19.65 },
+            frankfurt: { kaufpreis_qm: 5500, mietpreis_qm: 18.52 },
+            berlin: { kaufpreis_qm: 4500, mietpreis_qm: 12.78 },
+            durchschnitt: { kaufpreis_qm: 3400, mietpreis_qm: 11.40 },
+            erfurt: { kaufpreis_qm: 2100, mietpreis_qm: 7.80 },
+            mecklenburg: { kaufpreis_qm: 1650, mietpreis_qm: 6.20 },
+            kleinstadt: { kaufpreis_qm: 2300, mietpreis_qm: 8.50 },
+            frankreich_sued: { kaufpreis_qm: 4500, mietpreis_qm: 12.00 },
+            frankreich_west: { kaufpreis_qm: 2400, mietpreis_qm: 8.00 },
+            griechenland: { kaufpreis_qm: 1900, mietpreis_qm: 6.50 },
+            italien: { kaufpreis_qm: 2600, mietpreis_qm: 8.50 },
+            portugal: { kaufpreis_qm: 2800, mietpreis_qm: 8.00 },
+            spanien: { kaufpreis_qm: 2500, mietpreis_qm: 7.50 },
+            ungarn: { kaufpreis_qm: 1800, mietpreis_qm: 5.50 },
+            thailand: { kaufpreis_qm: 1200, mietpreis_qm: 4.00 },
+            vietnam: { kaufpreis_qm: 800, mietpreis_qm: 3.00 }
+        };
+        
+        // Region-Änderung Handler
+        document.getElementById('region').addEventListener('change', function() {
+            const region = this.value;
+            
+            if (region !== 'custom') {
+                const preise = regionalePreise[region];
+                if (preise) {
+                    const wohnflaeche = parseFloat(document.getElementById('wohnflaeche').value);
+                    document.getElementById('kaufpreis').value = Math.round(preise.kaufpreis_qm * wohnflaeche);
+                    document.getElementById('mietpreis-qm').value = preise.mietpreis_qm;
+                    berechneVersicherungsbeitrag(); // Versicherungsbeitrag neu berechnen
+                    berechnen(); // Automatisch neu berechnen
+                }
+            }
+        });
+        
+        // Wohnfläche-Änderung Handler
+        document.getElementById('wohnflaeche').addEventListener('input', function() {
+            const region = document.getElementById('region').value;
+            if (region !== 'custom') {
+                const preise = regionalePreise[region];
+                if (preise) {
+                    const wohnflaeche = parseFloat(this.value);
+                    document.getElementById('kaufpreis').value = Math.round(preise.kaufpreis_qm * wohnflaeche);
+                    berechneVersicherungsbeitrag(); // Versicherungsbeitrag neu berechnen
+                    berechnen(); // Automatisch neu berechnen
+                }
+            } else {
+                // Auch bei eigenen Werten Versicherung neu berechnen wenn sich qm ändern
+                berechneVersicherungsbeitrag();
+                berechnen();
+            }
+        });
+        
+        // Mietpreis pro qm Änderung Handler
+        document.getElementById('mietpreis-qm').addEventListener('input', function() {
+            berechneVersicherungsbeitrag(); // Versicherungsbeitrag neu berechnen
+            berechnen();
+        });
+        
+        // Risikoversicherung Toggle
+        document.getElementById('risikoversicherung').addEventListener('change', function() {
+            const alterInput = document.getElementById('versicherung-details');
+            const beitragInput = document.getElementById('versicherung-beitrag');
+            
+            if (this.checked) {
+                alterInput.style.display = 'block';
+                beitragInput.style.display = 'block';
+                berechneVersicherungsbeitrag();
+            } else {
+                alterInput.style.display = 'none';
+                beitragInput.style.display = 'none';
+            }
+            berechnen();
+        });
+        
+        // Alter/Darlehenssumme/Laufzeit ändern → Versicherungsbeitrag neu berechnen
+        document.getElementById('alter').addEventListener('input', function() {
+            berechneVersicherungsbeitrag();
+            berechnen();
+        });
+        document.getElementById('laufzeit').addEventListener('input', function() {
+            berechneVersicherungsbeitrag();
+            berechnen();
+        });
+        document.getElementById('kaufpreis').addEventListener('input', function() {
+            berechneVersicherungsbeitrag();
+            berechnen();
+        });
+        document.getElementById('eigenkapital').addEventListener('input', function() {
+            berechneVersicherungsbeitrag();
+            berechnen();
+        });
+        
+        function berechneVersicherungsbeitrag() {
+            if (!document.getElementById('risikoversicherung').checked) return;
+            
+            const alter = parseFloat(document.getElementById('alter').value) || 64;
+            const laufzeit = parseFloat(document.getElementById('laufzeit').value) || 20;
+            const kaufpreis = parseFloat(document.getElementById('kaufpreis').value) || 0;
+            const eigenkapital = parseFloat(document.getElementById('eigenkapital').value) || 0;
+            const darlehenssumme = Math.max(0, kaufpreis - eigenkapital);
+            
+            const endAlter = alter + laufzeit;
+            
+            // REALITÄTSCHECK: Versicherung bei hohem Alter + langer Laufzeit unmöglich
+            if (alter >= 70 || endAlter >= 85 || (alter >= 65 && laufzeit >= 15) || (alter >= 60 && laufzeit >= 25)) {
+                document.getElementById('versicherungsbeitrag').value = "nicht verfügbar bei der Laufzeit";
+                document.getElementById('versicherungsbeitrag').style.backgroundColor = "#ffebee";
+                return;
+            } else {
+                document.getElementById('versicherungsbeitrag').style.backgroundColor = "";
+            }
+            
+            // Fixed calculation - the loan amount must be greater than 0 to need insurance
+            if (darlehenssumme <= 0) {
+                document.getElementById('versicherungsbeitrag').value = "0";
+                return;
+            }
+            
+            // EHRLICHE Berechnung: Bei hoher Sterbewahrscheinlichkeit = hohe Beiträge
+            // Versicherung muss kalkulieren: Wie hoch ist die Wahrscheinlichkeit zu zahlen?
+            
+            // Sterbewahrscheinlichkeit über Laufzeit (vereinfacht)
+            let sterbeRisiko = 0.05; // 5% für junge Menschen über 20 Jahre
+            
+            if (alter >= 65) sterbeRisiko = 0.60;        // 60% Risiko über 10+ Jahre
+            else if (alter >= 60) sterbeRisiko = 0.35;   // 35% Risiko über 15+ Jahre  
+            else if (alter >= 55) sterbeRisiko = 0.20;   // 20% Risiko über 20 Jahre
+            else if (alter >= 50) sterbeRisiko = 0.12;   // 12% Risiko
+            else if (alter >= 45) sterbeRisiko = 0.08;   // 8% Risiko
+            else if (alter >= 40) sterbeRisiko = 0.06;   // 6% Risiko
+            else if (alter >= 35) sterbeRisiko = 0.05;   // 5% Risiko
+            else if (alter >= 30) sterbeRisiko = 0.04;   // 4% Risiko
+            else if (alter >= 25) sterbeRisiko = 0.03;   // 3% Risiko
+            
+            // Laufzeit erhöht Risiko exponentiell bei höherem Alter
+            let laufzeitMultiplikator = 1.0;
+            if (alter >= 55) {
+                laufzeitMultiplikator = Math.pow(1.12, Math.max(0, laufzeit - 10));
+            } else {
+                laufzeitMultiplikator = Math.pow(1.05, Math.max(0, laufzeit - 15));
+            }
+            
+            const adjustedRisiko = Math.min(0.80, sterbeRisiko * laufzeitMultiplikator);
+            
+            // Versicherer muss: Erwartete Auszahlung + Gewinnmarge + Verwaltung
+            // = Sterberisiko * Versicherungssumme * 1.3 (30% Zuschlag) / Laufzeit / 12
+            const erwarteteAuszahlung = darlehenssumme * adjustedRisiko;
+            const mitZuschlag = erwarteteAuszahlung * 1.3; // 30% für Gewinn+Verwaltung
+            const monatsbeitrag = mitZuschlag / (laufzeit * 12);
+            
+            document.getElementById('versicherungsbeitrag').value = Math.round(monatsbeitrag);
+        }
+        
+        function formatCurrency(amount) {
+            return Math.round(amount).toLocaleString('de-DE') + ' €';
+        }
+        
+        function berechnen() {
+            // Alle Eingaben lesen
+            const eigenkapital = parseFloat(document.getElementById('eigenkapital').value);
+            const kaufpreis = parseFloat(document.getElementById('kaufpreis').value);
+            const wohnflaeche = parseFloat(document.getElementById('wohnflaeche').value);
+            const mietpreisQm = parseFloat(document.getElementById('mietpreis-qm').value);
+            const zinssatz = parseFloat(document.getElementById('zinssatz').value);
+            const laufzeit = parseFloat(document.getElementById('laufzeit').value);
+            const aktienrendite = parseFloat(document.getElementById('aktienrendite').value);
+            const immobilienWertsteigerung = parseFloat(document.getElementById('immobilien-wertsteigerung').value);
+            const alter = parseFloat(document.getElementById('alter').value);
+            const risikoversicherung = document.getElementById('risikoversicherung').checked;
+            
+            // Fixed: Parse the insurance premium correctly
+            const versicherungsbeitragValue = document.getElementById('versicherungsbeitrag').value;
+            let versicherungsbeitrag = 0;
+            
+            if (risikoversicherung && versicherungsbeitragValue !== "nicht verfügbar bei der Laufzeit") {
+                versicherungsbeitrag = parseFloat(versicherungsbeitragValue) || 0;
+            }
+            
+            // Berechnungen
+            const darlehenssumme = kaufpreis - eigenkapital;
+            const eigenkapitalProzent = (eigenkapital / kaufpreis) * 100;
+            
+            // Monatliche Kreditrate
+            const monatszins = zinssatz / 100 / 12;
+            const anzahlRaten = laufzeit * 12;
+            let monatlicheRate = 0;
+            
+            if (darlehenssumme > 0) {
+                monatlicheRate = darlehenssumme * (monatszins * Math.pow(1 + monatszins, anzahlRaten)) / 
+                               (Math.pow(1 + monatszins, anzahlRaten) - 1);
+            }
+            
+            // Bei negativer Darlehenssumme: Barkauf + Restkapital für Aktien
+            const ueberschussKapital = darlehenssumme < 0 ? Math.abs(darlehenssumme) : 0;
+            const gesamtesAktienkapital = eigenkapital + ueberschussKapital;
+            
+            // Aktienrendite aus Überschusskapital (bei Barkauf)
+            const ueberschussErtragJahr = ueberschussKapital * (aktienrendite / 100);
+            const ueberschussSteuern = Math.max(0, ueberschussErtragJahr - 1000) * 0.26;
+            const ueberschussNettoMonat = (ueberschussErtragJahr - ueberschussSteuern) / 12;
+            
+            // Zusatzkosten Kauf
+            const nebenkosten = kaufpreis * 0.08; // 8% Nebenkosten
+            const zusatzkostenMonat = kaufpreis * 0.002 / 12; // 0.2% monatlich
+            const versicherungskosten = versicherungsbeitrag; // Fixed: Use the calculated premium
+            const gesamtKaufMonat = monatlicheRate + zusatzkostenMonat + versicherungskosten;
+            
+            // Miete
+            const kaltmiete = wohnflaeche * mietpreisQm;
+            const warmmiete = kaltmiete * 1.3; // +30% Nebenkosten
+            
+            // Aktienrendite nach Steuern - NUR für Vergleichsrechnung der monatlichen Kosten
+            const aktienErtragJahr = gesamtesAktienkapital * (aktienrendite / 100);
+            const steuern = Math.max(0, aktienErtragJahr - 1000) * 0.26; // Freibetrag + Steuer
+            const nettoErtragMonat = (aktienErtragJahr - steuern) / 12;
+            
+            const nettoWohnkosten = warmmiete - nettoErtragMonat;
+            
+            // Vermögen nach Laufzeit - REALISTISCHE Berechnung mit steigenden Mieten
+            const immobilienWert30J = kaufpreis * Math.pow(1 + immobilienWertsteigerung/100, laufzeit);
+            
+            // Bei Barkauf: Überschusskapital wächst parallel als Aktienanlage
+            const ueberschussAktienWert30J = ueberschussKapital * Math.pow(1 + aktienrendite/100, laufzeit);
+            const gesamtKaufVermoegenWert30J = immobilienWert30J + ueberschussAktienWert30J;
+            
+            // Aktienportfolio: Jahr-für-Jahr Simulation mit steigenden Wohnkosten
+            let portfolioWert = gesamtesAktienkapital;
+            const bruttoRendite = aktienrendite / 100;
+            const mietSteigerung = immobilienWertsteigerung / 100;
+            let aktuelleWarmmiete = warmmiete;
+            let portfolioAufgebrauchtNach = null; // Tracking wann Portfolio aufgebraucht ist
+            
+            for (let jahr = 1; jahr <= laufzeit; jahr++) {
+                // Portfolio wächst um Bruttorendite
+                portfolioWert = portfolioWert * (1 + bruttoRendite);
+                
+                // Miete steigt jährlich um Immobilien-Wertsteigerungsrate
+                aktuelleWarmmiete = aktuelleWarmmiete * (1 + mietSteigerung);
+                
+                // Entnahme der steigenden Wohnkosten
+                const jaehrlicheWohnkosten = aktuelleWarmmiete * 12;
+                portfolioWert = portfolioWert - jaehrlicheWohnkosten;
+                
+                // Portfolio kann nicht negativ werden
+                if (portfolioWert < 0) {
+                    portfolioAufgebrauchtNach = jahr;
+                    portfolioWert = 0;
+                    break;
+                }
+            }
+            
+            const aktienWert30J = portfolioWert;
+            
+            // Ergebnisse anzeigen
+            const nettoKaufKosten = gesamtKaufMonat - (ueberschussKapital > 0 ? ueberschussNettoMonat : 0);
+            const ersparnis = nettoKaufKosten - nettoWohnkosten;
+            const vermoegensDifferenz = aktienWert30J - gesamtKaufVermoegenWert30J;
+            
+            // Kapitalwert der monatlichen Ersparnis bei Aktienanlage
+            const monatlicheErsparnis = Math.abs(ersparnis);
+            const monatsrendite = aktienrendite / 100 / 12;
+            const anzahlMonate = laufzeit * 12;
+            
+            // Formel für Endwert einer Annuität: PMT * [((1+r)^n - 1) / r]
+            let kapitalwertErsparnis = 0;
+            if (monatsrendite > 0) {
+                kapitalwertErsparnis = monatlicheErsparnis * (Math.pow(1 + monatsrendite, anzahlMonate) - 1) / monatsrendite;
+            } else {
+                kapitalwertErsparnis = monatlicheErsparnis * anzahlMonate; // Falls 0% Rendite
+            }
+            
+            // Steuerbereinigung des Kapitalwerts (vereinfacht)
+            const bruttoErtragErsparnis = kapitalwertErsparnis - (monatlicheErsparnis * anzahlMonate);
+            const steuernErsparnis = Math.max(0, bruttoErtragErsparnis - 1000) * 0.26;
+            const nettoKapitalwertErsparnis = kapitalwertErsparnis - steuernErsparnis;
+            
+            // Region anzeigen
+            const regionNames = {
+                muenchen: 'München',
+                frankfurt: 'Frankfurt',
+                berlin: 'Berlin',
+                durchschnitt: 'Deutschland Durchschnitt',
+                erfurt: 'Erfurt (Thüringen)',
+                mecklenburg: 'Mecklenburg-Vorpommern',
+                kleinstadt: 'Kleinstadt/Ländlich',
+                frankreich_sued: '🇫🇷 Frankreich Süd (Côte d\'Azur)',
+                frankreich_west: '🇫🇷 Frankreich West (Atlantik)',
+                griechenland: '🇬🇷 Griechenland',
+                italien: '🇮🇹 Italien (Süd)',
+                portugal: '🇵🇹 Portugal',
+                spanien: '🇪🇸 Spanien',
+                ungarn: '🇭🇺 Ungarn',
+                thailand: '🇹🇭 Thailand',
+                vietnam: '🇻🇳 Vietnam',
+                custom: 'Eigene Eingaben'
+            };
+            const regionName = regionNames[document.getElementById('region').value] || 'Unbekannt';
+            
+            document.getElementById('results').innerHTML = `
+                <div class="result-card">
+                    <h3>📍 ${regionName}</h3>
+                    <div class="result-item">
+                        <span>Verfügbares Eigenkapital:</span>
+                        <strong>${formatCurrency(eigenkapital)}</strong>
+                    </div>
+                    <div class="result-item">
+                        <span>Gewünschte Immobilie:</span>
+                        <strong>${formatCurrency(kaufpreis)} (${wohnflaeche} m²)</strong>
+                    </div>
+                    <div class="result-item">
+                        <span>Eigenkapital-Anteil:</span>
+                        <strong>${eigenkapitalProzent.toFixed(1)}%</strong>
+                    </div>
+                </div>
+                
+                <div class="result-card">
+                    <h3>🏠 Kauf-Szenario</h3>
+                    ${darlehenssumme <= 0 ? `
+                    <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 12px; margin-bottom: 15px; color: #155724; font-size: 14px;">
+                        💰 <strong>Barkauf möglich!</strong> Sie haben ${formatCurrency(ueberschussKapital)} Restkapital für zusätzliche Aktienanlage.
+                    </div>
+                    ` : ''}
+                    <div class="result-item">
+                        <span>${darlehenssumme <= 0 ? 'Barkauf - keine Finanzierung nötig' : 'Darlehenssumme'}:</span>
+                        <strong>${darlehenssumme <= 0 ? '0 €' : formatCurrency(darlehenssumme)}</strong>
+                    </div>
+                    <div class="result-item">
+                        <span>Nebenkosten einmalig:</span>
+                        <strong>${formatCurrency(nebenkosten)}</strong>
+                    </div>
+                    <div class="result-item">
+                        <span>Kreditrate/Monat:</span>
+                        <strong>${darlehenssumme <= 0 ? '0 €' : formatCurrency(monatlicheRate)}</strong>
+                    </div>
+                    ${ueberschussKapital > 0 ? `
+                    <div class="result-item">
+                        <span>Restkapital-Rendite/Monat:</span>
+                        <strong>${formatCurrency(ueberschussNettoMonat)}</strong>
+                    </div>
+                    ` : ''}
+                    <div class="result-item">
+                        <span>Zusatzkosten/Monat:</span>
+                        <strong>${formatCurrency(zusatzkostenMonat)}</strong>
+                    </div>
+                    ${risikoversicherung ? `
+                    <div class="result-item">
+                        <span>Risikolebensversicherung/Monat:</span>
+                        <strong>${versicherungsbeitrag > 0 ? formatCurrency(versicherungskosten) : 'Nicht verfügbar'}</strong>
+                    </div>
+                    ` : ''}
+                    <div class="highlight">
+                        Netto-Kosten pro Monat: ${formatCurrency(nettoKaufKosten)}
+                    </div>
+                </div>
+                
+                <div class="result-card">
+                    <h3>🏠📈 Miete + Aktien-Szenario</h3>
+                    ${portfolioAufgebrauchtNach ? `
+                    <div style="background: #ffebee; border: 2px solid #f44336; border-radius: 8px; padding: 15px; margin-bottom: 15px; color: #c62828;">
+                        ⚠️ <strong>WARNUNG: Aktienportfolio aufgebraucht!</strong><br>
+                        Das Portfolio reicht nur für <strong>${portfolioAufgebrauchtNach} Jahre</strong> statt der geplanten ${laufzeit} Jahre.<br>
+                        Danach müssten Sie die steigenden Mietkosten aus anderen Quellen finanzieren.
+                    </div>
+                    ` : ''}
+                    <div class="result-item">
+                        <span>Warmmiete/Monat:</span>
+                        <strong>${formatCurrency(warmmiete)}</strong>
+                    </div>
+                    <div class="result-item">
+                        <span>Aktienrendite (netto)/Monat:</span>
+                        <strong>${formatCurrency(nettoErtragMonat)}</strong>
+                    </div>
+                    <div class="highlight">
+                        ${nettoWohnkosten < 0 
+                            ? `Kapitalertrag: +${formatCurrency(Math.abs(nettoWohnkosten))} (Sie verdienen beim Wohnen!)` 
+                            : `Netto-Wohnkosten: ${formatCurrency(nettoWohnkosten)}`
+                        }
+                    </div>
+                </div>
+                
+                <div class="result-card">
+                    <h3>⚖️ Vergleich</h3>
+                    <div class="comparison ${ersparnis < 0 ? 'negative' : ''}">
+                        <strong>Monatliche Ersparnis durch Miete + Aktien:</strong><br>
+                        ${ersparnis > 0 ? '+' : ''}${formatCurrency(ersparnis)}
+                    </div>
+                    
+                    <h4 style="margin-top: 20px; color: #2c3e50;">Vermögen nach ${laufzeit} Jahren:</h4>
+                    <div class="result-item">
+                        <span>Immobilienwert:</span>
+                        <strong>${formatCurrency(immobilienWert30J)}</strong>
+                    </div>
+                    ${ueberschussKapital > 0 ? `
+                    <div class="result-item">
+                        <span>+ Restkapital-Aktienanlage:</span>
+                        <strong>${formatCurrency(ueberschussAktienWert30J)}</strong>
+                    </div>
+                    <div class="result-item" style="border-top: 2px solid #2c3e50; margin-top: 8px; padding-top: 8px;">
+                        <span><strong>Gesamt Kauf-Vermögen:</strong></span>
+                        <strong>${formatCurrency(gesamtKaufVermoegenWert30J)}</strong>
+                    </div>
+                    ` : ''}
+                    <div class="result-item">
+                        <span>Aktienportfolio (Miete):</span>
+                        <strong>${formatCurrency(aktienWert30J)}${portfolioAufgebrauchtNach ? ` (aufgebraucht nach ${portfolioAufgebrauchtNach} Jahren)` : ''}</strong>
+                    </div>
+                    <div class="comparison ${vermoegensDifferenz < 0 ? 'negative' : ''}">
+                        ${vermoegensDifferenz > 0 
+                            ? `<strong>Vermögens-Vorteil Aktien:</strong><br>+${formatCurrency(vermoegensDifferenz)}`
+                            : `<strong>Vermögens-Vorteil Kauf:</strong><br>+${formatCurrency(Math.abs(vermoegensDifferenz))}`
+                        }
+                    </div>
+                    
+                    <div style="background: #e3f2fd; border-left: 5px solid #2196f3; padding: 15px; margin-top: 15px; border-radius: 5px;">
+                        <strong>💰 Kapitalwert der monatlichen Ersparnis:</strong><br>
+                        ${ersparnis > 0 
+                            ? `Wenn Sie die monatliche Ersparnis von ${formatCurrency(ersparnis)} in Aktien anlegen:<br><strong>Endwert nach ${laufzeit} Jahren: ${formatCurrency(nettoKapitalwertErsparnis)}</strong>`
+                            : ersparnis < 0
+                            ? `Wenn Sie die monatlichen Mehrkosten von ${formatCurrency(Math.abs(ersparnis))} vermeiden könnten:<br><strong>Entgangener Wert nach ${laufzeit} Jahren: ${formatCurrency(nettoKapitalwertErsparnis)}</strong>`
+                            : 'Keine monatliche Differenz - gleiche Kosten'
+                        }
+                    </div>
+                </div>
+                
+                <div class="result-card">
+                    <h3>📋 Fazit</h3>
+                    <p style="line-height: 1.6; color: #2c3e50;">
+                        ${portfolioAufgebrauchtNach 
+                            ? `🚨 <strong>Kritisches Ergebnis:</strong> Das Aktienportfolio reicht nur ${portfolioAufgebrauchtNach} Jahre. Danach entstehen hohe Finanzierungslücken bei steigenden Mietkosten. Der Immobilienkauf ist hier deutlich sicherer.`
+                            : ersparnis > 0 && vermoegensDifferenz > 0 
+                            ? '✅ <strong>Miete + Aktienanlage ist in beiden Kategorien überlegen!</strong> Sie sparen monatlich Geld und bauen langfristig mehr Vermögen auf.' 
+                            : ersparnis > 0 
+                            ? '⚖️ <strong>Gemischtes Bild:</strong> Miete + Aktien spart monatlich Geld, aber das Endvermögen ist anders zu bewerten.'
+                            : '🏠 <strong>Kauf könnte interessant sein:</strong> Prüfen Sie zusätzliche Faktoren wie Flexibilität, Instandhaltungsrisiken und Ihre persönliche Situation.'
+                        }
+                    </p>
+                </div>
+            `;
+        }
+        
+        // Automatische Berechnung beim Laden
+        window.onload = function() {
+            // Startet mit aktivierter Versicherung und berechnet Beitrag
+            berechneVersicherungsbeitrag();
+            berechnen();
+        };
+    </script>
+</body>
+</html>
