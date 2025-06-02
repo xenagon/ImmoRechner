@@ -1,4 +1,4 @@
-// ===== UI FUNCTIONS =====
+// ===== UI FUNCTIONS - SAFELY REFACTORED =====
 
 /**
  * Format currency in German locale
@@ -99,42 +99,83 @@ function performAndDisplayCalculation() {
     updateResultsDisplay(results, inputs);
 }
 
+// ===== TEMPLATE HELPER FUNCTIONS =====
+
 /**
- * Update the results section with calculation results
+ * Generate a standard result item row
  */
-function updateResultsDisplay(results, inputs) {
-    const regionName = REGION_NAMES[inputs.region] || 'Unbekannt';
-    
-    const resultsHTML = `
-        <div class="result-card">
-            <h3>📍 ${regionName}</h3>
-            <div class="result-item">
-                <span>Verfügbares Eigenkapital:</span>
-                <strong>${formatCurrency(results.eigenkapital)}</strong>
-            </div>
-            <div class="result-item">
-                <span>Gewünschte Immobilie:</span>
-                <strong>${formatCurrency(results.kaufpreis)} (${results.wohnflaeche} m²)</strong>
-            </div>
-            <div class="result-item">
-                <span>Eigenkapital-Anteil:</span>
-                <strong>${results.equityPercentage.toFixed(1)}%</strong>
-            </div>
+function generateResultItem(label, value) {
+    return `
+        <div class="result-item">
+            <span>${label}</span>
+            <strong>${value}</strong>
         </div>
-        
-        ${generatePurchaseScenarioHTML(results, inputs)}
-        ${generateRentScenarioHTML(results)}
-        ${generateComparisonHTML(results)}
-        ${generateConclusionHTML(results)}
     `;
-    
-    document.getElementById('results').innerHTML = resultsHTML;
 }
 
 /**
- * Generate HTML for purchase scenario
+ * Generate a highlight box
  */
-function generatePurchaseScenarioHTML(results, inputs) {
+function generateHighlightBox(content) {
+    return `
+        <div class="highlight">
+            ${content}
+        </div>
+    `;
+}
+
+/**
+ * Generate comparison box
+ */
+function generateComparisonBox(content, isNegative = false) {
+    const cssClass = isNegative ? 'comparison negative' : 'comparison';
+    return `
+        <div class="${cssClass}">
+            ${content}
+        </div>
+    `;
+}
+
+/**
+ * Generate info box with different styles
+ */
+function generateInfoBox(content, type = 'info') {
+    const styles = {
+        info: 'background: #e3f2fd; border-left: 5px solid #2196f3;',
+        warning: 'background: #fff3cd; border: 1px solid #ffeaa7;',
+        success: 'background: #d4edda; border: 1px solid #c3e6cb;',
+        danger: 'background: #ffebee; border: 2px solid #f44336;'
+    };
+    
+    return `
+        <div style="${styles[type]} padding: 15px; margin-top: 15px; border-radius: 5px;">
+            ${content}
+        </div>
+    `;
+}
+
+// ===== INDIVIDUAL CARD GENERATORS =====
+
+/**
+ * Generate region information card
+ */
+function generateRegionCard(results, inputs) {
+    const regionName = REGION_NAMES[inputs.region] || 'Unbekannt';
+    
+    return `
+        <div class="result-card">
+            <h3>📍 ${regionName}</h3>
+            ${generateResultItem('Verfügbares Eigenkapital:', formatCurrency(results.eigenkapital))}
+            ${generateResultItem('Gewünschte Immobilie:', `${formatCurrency(results.kaufpreis)} (${results.wohnflaeche} m²)`)}
+            ${generateResultItem('Eigenkapital-Anteil:', results.equityPercentage.toFixed(1) + '%')}
+        </div>
+    `;
+}
+
+/**
+ * Generate purchase scenario card
+ */
+function generatePurchaseCard(results, inputs) {
     const isCashPurchase = results.loanAmount <= 0;
     
     let html = `
@@ -142,134 +183,101 @@ function generatePurchaseScenarioHTML(results, inputs) {
             <h3>🏠 Kauf-Szenario</h3>
     `;
     
+    // Cash purchase notification
     if (isCashPurchase) {
-        html += `
-            <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 12px; margin-bottom: 15px; color: #155724; font-size: 14px;">
-                💰 <strong>Barkauf möglich!</strong> Sie haben ${formatCurrency(results.surplusCapital)} Restkapital für zusätzliche Aktienanlage.
-            </div>
-        `;
+        const content = `💰 <strong>Barkauf möglich!</strong> Sie haben ${formatCurrency(results.surplusCapital)} Restkapital für zusätzliche Aktienanlage.`;
+        html += generateInfoBox(content, 'success');
     }
     
-    html += `
-            <div class="result-item">
-                <span>${isCashPurchase ? 'Barkauf - keine Finanzierung nötig' : 'Darlehenssumme'}:</span>
-                <strong>${isCashPurchase ? '0 €' : formatCurrency(results.loanAmount)}</strong>
-            </div>
-            <div class="result-item">
-                <span>Nebenkosten einmalig:</span>
-                <strong>${formatCurrency(results.transactionCosts)}</strong>
-            </div>
-            <div class="result-item">
-                <span>Kreditrate/Monat:</span>
-                <strong>${isCashPurchase ? '0 €' : formatCurrency(results.monthlyLoanPayment)}</strong>
-            </div>
-    `;
+    // Loan details
+    const loanLabel = isCashPurchase ? 'Barkauf - keine Finanzierung nötig' : 'Darlehenssumme';
+    const loanValue = isCashPurchase ? '0 €' : formatCurrency(results.loanAmount);
+    const rateValue = isCashPurchase ? '0 €' : formatCurrency(results.monthlyLoanPayment);
+    
+    html += generateResultItem(loanLabel, loanValue);
+    html += generateResultItem('Nebenkosten einmalig:', formatCurrency(results.transactionCosts));
+    html += generateResultItem('Kreditrate/Monat:', rateValue);
     
     if (results.surplusCapital > 0) {
-        html += `
-            <div class="result-item">
-                <span>Restkapital-Rendite/Monat:</span>
-                <strong>${formatCurrency(results.surplusReturns)}</strong>
-            </div>
-        `;
+        html += generateResultItem('Restkapital-Rendite/Monat:', formatCurrency(results.surplusReturns));
     }
     
-    html += `
-            <div class="result-item">
-                <span>Zusatzkosten/Monat:</span>
-                <strong>${formatCurrency(results.monthlyMaintenanceCosts)}</strong>
-            </div>
-    `;
+    html += generateResultItem('Zusatzkosten/Monat:', formatCurrency(results.monthlyMaintenanceCosts));
     
     if (inputs.risikoversicherung) {
         const insuranceText = results.insurancePremium > 0 ? 
             formatCurrency(results.insurancePremium) : 'Nicht verfügbar';
-        html += `
-            <div class="result-item">
-                <span>Risikolebensversicherung/Monat:</span>
-                <strong>${insuranceText}</strong>
-            </div>
-        `;
+        html += generateResultItem('Risikolebensversicherung/Monat:', insuranceText);
     }
     
-    html += `
-            <div class="highlight">
-                Netto-Kosten pro Monat: ${formatCurrency(results.netPurchaseCosts)}
-            </div>
-        </div>
-    `;
+    html += generateHighlightBox(`Netto-Kosten pro Monat: ${formatCurrency(results.netPurchaseCosts)}`);
+    html += `</div>`;
     
     return html;
 }
 
 /**
- * Generate HTML for rent scenario
+ * Generate rent scenario card
  */
-function generateRentScenarioHTML(results) {
+function generateRentCard(results) {
     let html = `
         <div class="result-card">
             <h3>🏠📈 Miete + Aktien-Szenario</h3>
     `;
     
+    // Portfolio depletion warning
     if (results.stockPortfolio.depletedAfter) {
-        html += `
-            <div style="background: #ffebee; border: 2px solid #f44336; border-radius: 8px; padding: 15px; margin-bottom: 15px; color: #c62828;">
-                ⚠️ <strong>WARNUNG: Aktienportfolio aufgebraucht!</strong><br>
-                Das Portfolio reicht nur für <strong>${results.stockPortfolio.depletedAfter} Jahre</strong> statt der geplanten ${results.laufzeit} Jahre.<br>
-                Danach müssten Sie die steigenden Mietkosten aus anderen Quellen finanzieren.
-            </div>
+        const content = `
+            ⚠️ <strong>WARNUNG: Aktienportfolio aufgebraucht!</strong><br>
+            Das Portfolio reicht nur für <strong>${results.stockPortfolio.depletedAfter} Jahre</strong> statt der geplanten ${results.laufzeit} Jahre.<br>
+            Danach müssten Sie die steigenden Mietkosten aus anderen Quellen finanzieren.
         `;
+        html += generateInfoBox(content, 'danger');
     }
     
+    html += generateResultItem('Kaltmiete/Monat:', formatCurrency(results.coldRent));
+    
     html += `
-            <div class="result-item">
-                <span>Kaltmiete/Monat:</span>
-                <strong>${formatCurrency(results.coldRent)}</strong>
-            </div>
-            <div style="font-size: 12px; color: #6c757d; margin-top: 5px; padding: 8px; background: #f8f9fa; border-radius: 5px;">
-                ℹ️ <strong>Hinweis:</strong> Nebenkosten (Heizung, Strom, etc.) fallen bei beiden Szenarien an und sind daher nicht vergleichsrelevant.
-            </div>
-            <div class="result-item">
-                <span>Aktienrendite (netto)/Monat:</span>
-                <strong>${formatCurrency(results.stockReturns)}</strong>
-            </div>
-            <div class="highlight">
-                ${results.netRentCosts < 0 
-                    ? `Kapitalertrag: +${formatCurrency(Math.abs(results.netRentCosts))} (Sie verdienen beim Wohnen!)` 
-                    : `Netto-Wohnkosten: ${formatCurrency(results.netRentCosts)}`
-                }
-            </div>
+        <div style="font-size: 12px; color: #6c757d; margin-top: 5px; padding: 8px; background: #f8f9fa; border-radius: 5px;">
+            ℹ️ <strong>Hinweis:</strong> Nebenkosten (Heizung, Strom, etc.) fallen bei beiden Szenarien an und sind daher nicht vergleichsrelevant.
         </div>
     `;
+    
+    html += generateResultItem('Aktienrendite (netto)/Monat:', formatCurrency(results.stockReturns));
+    
+    const netCostsText = results.netRentCosts < 0 
+        ? `Kapitalertrag: +${formatCurrency(Math.abs(results.netRentCosts))} (Sie verdienen beim Wohnen!)`
+        : `Netto-Wohnkosten: ${formatCurrency(results.netRentCosts)}`;
+        
+    html += generateHighlightBox(netCostsText);
+    html += `</div>`;
     
     return html;
 }
 
 /**
- * Generate HTML for comparison section
+ * Generate comparison card
  */
-function generateComparisonHTML(results) {
+function generateComparisonCard(results) {
     let html = `
         <div class="result-card">
             <h3>⚖️ Vergleich</h3>
-            <div class="comparison ${results.monthlySavings < 0 ? 'negative' : ''}">
-                <strong>Monatliche Ersparnis durch Miete + Aktien:</strong><br>
-                ${results.monthlySavings > 0 ? '+' : ''}${formatCurrency(results.monthlySavings)}
-            </div>
-            
-            <h4 style="margin-top: 20px; color: #2c3e50;">Vermögen nach ${results.laufzeit} Jahren:</h4>
-            <div class="result-item">
-                <span>Immobilienwert:</span>
-                <strong>${formatCurrency(results.propertyValue)}</strong>
-            </div>
     `;
     
+    // Monthly savings comparison
+    const savingsContent = `
+        <strong>Monatliche Ersparnis durch Miete + Aktien:</strong><br>
+        ${results.monthlySavings > 0 ? '+' : ''}${formatCurrency(results.monthlySavings)}
+    `;
+    html += generateComparisonBox(savingsContent, results.monthlySavings < 0);
+    
+    // Wealth comparison
+    html += `<h4 style="margin-top: 20px; color: #2c3e50;">Vermögen nach ${results.laufzeit} Jahren:</h4>`;
+    html += generateResultItem('Immobilienwert:', formatCurrency(results.propertyValue));
+    
     if (results.surplusCapital > 0) {
+        html += generateResultItem('+ Restkapital-Aktienanlage:', formatCurrency(results.surplusStockValue));
         html += `
-            <div class="result-item">
-                <span>+ Restkapital-Aktienanlage:</span>
-                <strong>${formatCurrency(results.surplusStockValue)}</strong>
-            </div>
             <div class="result-item" style="border-top: 2px solid #2c3e50; margin-top: 8px; padding-top: 8px;">
                 <span><strong>Gesamt Kauf-Vermögen:</strong></span>
                 <strong>${formatCurrency(results.totalPurchaseWealth)}</strong>
@@ -277,37 +285,36 @@ function generateComparisonHTML(results) {
         `;
     }
     
-    html += `
-            <div class="result-item">
-                <span>Aktienportfolio (Miete):</span>
-                <strong>${formatCurrency(results.stockPortfolio.finalValue)}${results.stockPortfolio.depletedAfter ? ` (aufgebraucht nach ${results.stockPortfolio.depletedAfter} Jahren)` : ''}</strong>
-            </div>
-            <div class="comparison ${results.wealthDifference < 0 ? 'negative' : ''}">
-                ${results.wealthDifference > 0 
-                    ? `<strong>Vermögens-Vorteil Aktien:</strong><br>+${formatCurrency(results.wealthDifference)}`
-                    : `<strong>Vermögens-Vorteil Kauf:</strong><br>+${formatCurrency(Math.abs(results.wealthDifference))}`
-                }
-            </div>
-            
-            <div style="background: #e3f2fd; border-left: 5px solid #2196f3; padding: 15px; margin-top: 15px; border-radius: 5px;">
-                <strong>💰 Kapitalwert der monatlichen Ersparnis:</strong><br>
-                ${results.monthlySavings > 0 
-                    ? `Wenn Sie die monatliche Ersparnis von ${formatCurrency(results.monthlySavings)} in Aktien anlegen:<br><strong>Endwert nach ${results.laufzeit} Jahren: ${formatCurrency(results.netFutureValueSavings)}</strong>`
-                    : results.monthlySavings < 0
-                    ? `Wenn Sie die monatlichen Mehrkosten von ${formatCurrency(Math.abs(results.monthlySavings))} vermeiden könnten:<br><strong>Entgangener Wert nach ${results.laufzeit} Jahren: ${formatCurrency(results.netFutureValueSavings)}</strong>`
-                    : 'Keine monatliche Differenz - gleiche Kosten'
-                }
-            </div>
-        </div>
-    `;
+    const portfolioText = results.stockPortfolio.depletedAfter ? 
+        ` (aufgebraucht nach ${results.stockPortfolio.depletedAfter} Jahren)` : '';
+    html += generateResultItem('Aktienportfolio (Miete):', formatCurrency(results.stockPortfolio.finalValue) + portfolioText);
+    
+    const wealthAdvantage = results.wealthDifference > 0 ? 
+        `<strong>Vermögens-Vorteil Aktien:</strong><br>+${formatCurrency(results.wealthDifference)}` :
+        `<strong>Vermögens-Vorteil Kauf:</strong><br>+${formatCurrency(Math.abs(results.wealthDifference))}`;
+    
+    html += generateComparisonBox(wealthAdvantage, results.wealthDifference < 0);
+    
+    // Capital value of savings
+    let capitalContent = '<strong>💰 Kapitalwert der monatlichen Ersparnis:</strong><br>';
+    if (results.monthlySavings > 0) {
+        capitalContent += `Wenn Sie die monatliche Ersparnis von ${formatCurrency(results.monthlySavings)} in Aktien anlegen:<br><strong>Endwert nach ${results.laufzeit} Jahren: ${formatCurrency(results.netFutureValueSavings)}</strong>`;
+    } else if (results.monthlySavings < 0) {
+        capitalContent += `Wenn Sie die monatlichen Mehrkosten von ${formatCurrency(Math.abs(results.monthlySavings))} vermeiden könnten:<br><strong>Entgangener Wert nach ${results.laufzeit} Jahren: ${formatCurrency(results.netFutureValueSavings)}</strong>`;
+    } else {
+        capitalContent += 'Keine monatliche Differenz - gleiche Kosten';
+    }
+    
+    html += generateInfoBox(capitalContent, 'info');
+    html += `</div>`;
     
     return html;
 }
 
 /**
- * Generate HTML for conclusion section
+ * Generate conclusion card
  */
-function generateConclusionHTML(results) {
+function generateConclusionCard(results) {
     let conclusion;
     
     if (results.stockPortfolio.depletedAfter) {
@@ -328,4 +335,20 @@ function generateConclusionHTML(results) {
             </p>
         </div>
     `;
+}
+
+/**
+ * Update the complete results display - REFACTORED VERSION
+ */
+function updateResultsDisplay(results, inputs) {
+    const resultsContainer = document.getElementById('results');
+    
+    // Use the new modular approach
+    resultsContainer.innerHTML = [
+        generateRegionCard(results, inputs),
+        generatePurchaseCard(results, inputs),
+        generateRentCard(results),
+        generateComparisonCard(results),
+        generateConclusionCard(results)
+    ].join('');
 }
