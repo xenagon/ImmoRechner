@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#667eea">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>Burkhard's ImmoRechner</title>
+    <title>Buy vs Rent Calculator</title>
     <style>
         * {
             margin: 0;
@@ -259,7 +259,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏠 Burkhard's ImmoRechner 📈</h1>
+            <h1>🏠 Buy vs Rent Calculator 📈</h1>
             <p>Immobilienkauf vs. Miete + Aktienanlage Vergleich</p>
             <p style="font-size: 1rem; margin-top: 10px; opacity: 0.9; font-style: italic;">
                 Das ultimative Tool für internationale Rentner-Träume!
@@ -367,7 +367,7 @@
                     <label for="versicherungsbeitrag">→ Versicherungsbeitrag/Monat (EUR):</label>
                     <input type="text" id="versicherungsbeitrag" value="0" readonly>
                     <div style="font-size: 11px; color: #6c757d; margin-top: 4px;">
-                        Basierend auf Sterbewahrscheinlichkeit. Hohe Beiträge bei hohem Alter + langer Laufzeit
+                        Grobe Abschätzung basierend auf Sterbewahrscheinlichkeit. Echte Beiträge variieren stark je nach Gesundheitszustand, Beruf und Versicherer. Hohe Beiträge bei hohem Alter + langer Laufzeit
                     </div>
                 </div>
                 
@@ -608,16 +608,16 @@
             const versicherungskosten = versicherungsbeitrag; // Fixed: Use the calculated premium
             const gesamtKaufMonat = monatlicheRate + zusatzkostenMonat + versicherungskosten;
             
-            // Miete
+            // Miete - nur Kaltmiete ist relevant für Vergleich
             const kaltmiete = wohnflaeche * mietpreisQm;
-            const warmmiete = kaltmiete * 1.3; // +30% Nebenkosten
+            // Nebenkosten fallen bei beiden Szenarien an und sind daher nicht vergleichsrelevant
             
             // Aktienrendite nach Steuern - NUR für Vergleichsrechnung der monatlichen Kosten
             const aktienErtragJahr = gesamtesAktienkapital * (aktienrendite / 100);
             const steuern = Math.max(0, aktienErtragJahr - 1000) * 0.26; // Freibetrag + Steuer
             const nettoErtragMonat = (aktienErtragJahr - steuern) / 12;
             
-            const nettoWohnkosten = warmmiete - nettoErtragMonat;
+            const nettoWohnkosten = kaltmiete - nettoErtragMonat;
             
             // Vermögen nach Laufzeit - REALISTISCHE Berechnung mit steigenden Mieten
             const immobilienWert30J = kaufpreis * Math.pow(1 + immobilienWertsteigerung/100, laufzeit);
@@ -630,7 +630,7 @@
             let portfolioWert = gesamtesAktienkapital;
             const bruttoRendite = aktienrendite / 100;
             const mietSteigerung = immobilienWertsteigerung / 100;
-            let aktuelleWarmmiete = warmmiete;
+            let aktuelleKaltmiete = kaltmiete;
             let portfolioAufgebrauchtNach = null; // Tracking wann Portfolio aufgebraucht ist
             
             for (let jahr = 1; jahr <= laufzeit; jahr++) {
@@ -638,10 +638,10 @@
                 portfolioWert = portfolioWert * (1 + bruttoRendite);
                 
                 // Miete steigt jährlich um Immobilien-Wertsteigerungsrate
-                aktuelleWarmmiete = aktuelleWarmmiete * (1 + mietSteigerung);
+                aktuelleKaltmiete = aktuelleKaltmiete * (1 + mietSteigerung);
                 
                 // Entnahme der steigenden Wohnkosten
-                const jaehrlicheWohnkosten = aktuelleWarmmiete * 12;
+                const jaehrlicheWohnkosten = aktuelleKaltmiete * 12;
                 portfolioWert = portfolioWert - jaehrlicheWohnkosten;
                 
                 // Portfolio kann nicht negativ werden
@@ -766,8 +766,11 @@
                     </div>
                     ` : ''}
                     <div class="result-item">
-                        <span>Warmmiete/Monat:</span>
-                        <strong>${formatCurrency(warmmiete)}</strong>
+                        <span>Kaltmiete/Monat:</span>
+                        <strong>${formatCurrency(kaltmiete)}</strong>
+                    </div>
+                    <div style="font-size: 12px; color: #6c757d; margin-top: 5px; padding: 8px; background: #f8f9fa; border-radius: 5px;">
+                        ℹ️ <strong>Hinweis:</strong> Nebenkosten (Heizung, Strom, etc.) fallen bei beiden Szenarien an und sind daher nicht vergleichsrelevant.
                     </div>
                     <div class="result-item">
                         <span>Aktienrendite (netto)/Monat:</span>
